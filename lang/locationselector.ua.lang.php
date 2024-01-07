@@ -29,4 +29,5 @@ $L['ls_newcity_list'] = 'Вкажіть список місць';
 
 $L['select_country'] = ' Виберіть країну';
 $L['select_region'] = ' Виберіть регіон';
-$L['select_city'] = ' Виберіть місце';
+$L['select_city'] = ' Виберіть місто';
+$L['select_place'] = ' Виберіть місце';

@@ -10,10 +10,9 @@
 			</tr>
 			<!-- BEGIN: ROWS -->
 			<tr>
-				<td>{CITY_ROW_NAME} </td>
+				<td>{PLACE_ROW_NAME} </td>
 				<td>
-					<a href="{CITY_ROW_URL}" class="special button btn btn-default"><span class="view icon"></span>{PHP.L.Open}</a>
-					<a onclick="return confirm('Confirm')" title="{PHP.L.Delete}" href="{CITY_ROW_DEL_URL}" class="negative button btn btn-danger"><span class="trash icon"></span>{PHP.L.Delete}</a>		
+					<a onclick="return confirm('Confirm')" title="{PHP.L.Delete}" href="{PLACE_ROW_DEL_URL}" class="negative button btn btn-danger"><span class="trash icon"></span>{PHP.L.Delete}</a>		
 				</td>
 			</tr>
 			<!-- END: ROWS -->

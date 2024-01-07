@@ -20,3 +20,4 @@ $location = cot_import_location();
 $ritem['item_country'] = $location['country'];
 $ritem['item_region'] = $location['region'];
 $ritem['item_city'] = $location['city'];
+$ritem['item_place'] = $location['place'];

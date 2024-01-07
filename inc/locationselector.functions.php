@@ -19,10 +19,11 @@ defined('COT_CODE') or die('Wrong URL');
 require_once cot_incfile('forms');
 require_once cot_langfile('locationselector', 'plug');
 
-global $db_ls_regions, $db_ls_cities, $db_x;
+global $db_ls_regions, $db_ls_cities, $db_ls_places, $db_x;
 $db_ls_regions = (isset($db_ls_regions)) ? $db_ls_regions : $db_x . 'ls_regions';
 $db_ls_cities = (isset($db_ls_cities)) ? $db_ls_cities : $db_x . 'ls_cities';
-$R['input_location'] = (empty($R['input_location'])) ? '<span class="locselect"><span>{$country}</span> <span>{$region}</span> <span>{$city}</span></span>' : $R['input_location'];
+$db_ls_places = (isset($db_ls_places)) ? $db_ls_places : $db_x . 'ls_places';
+$R['input_location'] = (empty($R['input_location'])) ? '<span class="locselect"><span>{$country}</span> <span>{$region}</span> <span>{$city}</span> <span>{$place}</span></span>' : $R['input_location'];
 
 if (!$cot_countries)
 {
@@ -31,11 +32,12 @@ if (!$cot_countries)
 
 function cot_load_location()
 {
-	global $db_ls_regions, $db_ls_cities, $db, $cfg, $cot_countries, $cache;
-	global $cot_lf_regions, $cot_lf_cities, $cot_lf_locations;
+	global $db_ls_regions, $db_ls_cities, $db_ls_places, $db, $cfg, $cot_countries, $cache;
+	global $cot_lf_regions, $cot_lf_cities, $cot_lf_places, $cot_lf_locations;
 
-	if (!$cot_lf_regions || !$cot_lf_cities || !$cot_lf_locations)
+	if (!$cot_lf_regions || !$cot_lf_cities || !$cot_lf_places || !$cot_lf_locations)
 	{
+		$cot_lf_places = array();
 		$cot_lf_cities = array();
 		$cot_lf_regions = array();
 		$cot_lf_locations = array();
@@ -61,8 +63,18 @@ function cot_load_location()
 			$cot_lf_cities[$city['city_id']] = $city['city_name'];
 			$cot_lf_locations[$city['city_country']][$city['city_region']][$city['city_id']] = $city['city_name'];
 		}
+		$where_filter = ((is_array($countriesfilter) && count($countriesfilter)) > 0) ? "WHERE place_country IN ('" . implode("','", $countriesfilter) . "')" : "";
+		$sql = $db->query("SELECT * FROM $db_ls_places $where_filter");
+		while ($place = $sql->fetch())
+		{
+			$cot_lf_places[$place['place_id']] = $place['place_name'];
+			//Паше - тут вопросы к строке ниже - все ли верно
+			//я ебу как оно определяет эти кешированные массивы
+			$cot_lf_locations[$place['place_country']][$place['place_region']][$place['place_city']][$place['place_id']] = $place['place_name'];
+		}
 		$cache && $cache->db->store('cot_lf_regions', $cot_lf_regions, COT_DEFAULT_REALM, 3600);
 		$cache && $cache->db->store('cot_lf_cities', $cot_lf_cities, COT_DEFAULT_REALM, 3600);
+		$cache && $cache->db->store('cot_lf_places', $cot_lf_places, COT_DEFAULT_REALM, 3600);
 		$cache && $cache->db->store('cot_lf_locations', $cot_lf_locations, COT_DEFAULT_REALM, 3600);
 	}
 }
@@ -119,27 +131,41 @@ function cot_getregions($country)
 	asort($regions);
 	return $regions;
 }
-
+//паше - тут тоже яебу что пишу эта функция и ниже
 function cot_getcities($region)
+{
+	global $cot_lf_regions, $cot_lf_cities, $cot_lf_locations;
+	$cities = array();
+	$cot_lf_locations[$country] = (is_array($cot_lf_locations[$country])) ? $cot_lf_locations[$country] : array();
+	foreach ($cot_lf_locations[$country] as $i => $reg)
+	{
+		$cities[$i] = $cot_lf_cities[$i];
+	}
+	asort($cities);
+	return $cities;
+}
+
+
+function cot_getplaces($city)
 {
 	global $cot_lf_locations;
 
-	$cities = array();
-	foreach ($cot_lf_locations as $lcountry => $regs)
+	$places = array();
+	foreach ($cot_lf_locations as $lcountry => $cits)
 	{
-		if (array_key_exists($region, $regs))
+		if (array_key_exists($region, $cits))
 		{
 			$country = $lcountry;
 			break;
 		}
 	}
 	
-	foreach ($cot_lf_locations[$country][$region] as $id => $name)
+	foreach ($cot_lf_locations[$country][$place] as $id => $name)
 	{
-		$cities[$id] = $name;
+		$places[$id] = $name;
 	}
-	asort($cities);
-	return $cities;
+	asort($places);
+	return $places;
 }
 
 function cot_getcountry($country)
@@ -160,13 +186,21 @@ function cot_getcity($city)
 	return $cot_lf_cities[$city];
 }
 
-function cot_getlocation($country = '', $region = 0, $city = 0)
+function cot_getplace($place)
 {
-	global $cot_countries, $cot_lf_regions, $cot_lf_cities;
+	global $cot_lf_places;
+	return $cot_lf_places[$place];
+}
+
+
+function cot_getlocation($country = '', $region = 0, $city = 0, $place = 0)
+{
+	global $cot_countries, $cot_lf_regions, $cot_lf_cities, $cot_lf_places;
 	
 	$location['country'] = '';
 	$location['region'] = '';
 	$location['city'] = '';	
+	$location['place'] = '';	
 	if(!empty($country))
 	{
 		$location['country'] = $cot_countries[$country];
@@ -179,10 +213,14 @@ function cot_getlocation($country = '', $region = 0, $city = 0)
 	{
 		$location['city'] = $cot_lf_cities[$city];	
 	}
+	if(!empty($country) && (int)$region > 0 && (int)$city > 0 && (int)$place > 0)
+	{
+		$location['place'] = $cot_lf_places[$place];	
+	}
 	return $location;
 }
 
-function cot_select_location($country = '', $region = 0, $city = 0, $userdefault = false)
+function cot_select_location($country = '', $region = 0, $city = 0, $place = 0, $userdefault = false)
 {
 	global $cfg, $L, $R, $usr;
 
@@ -229,11 +267,19 @@ function cot_select_location($country = '', $region = 0, $city = 0, $userdefault
 		$disabled = (empty($region) || count($cities) < 2) ? 'disabled="disabled" ' : '';
 		$city_selectbox = cot_selectbox($city, 'city', array_keys($cities), array_values($cities), 
 			false, $disabled . 'class="locselectcity form-control select2 fullwidth select2-alph-sort" id="locselectcity"');	
+		//паше - тоже от фонаря
+		$place = ($city == 0 || count($cities) < 2) ? 0 : $place;
+		$places = (!empty($city)) ? cot_getplaces($city) : array();
+		$places = array(0 => $L['select_place']) + $places;
+		$disabled = (empty($city) || count($places) < 2) ? 'disabled="disabled" ' : '';
+		$place_selectbox = cot_selectbox($place, 'place', array_keys($places), array_values($places), 
+			false, $disabled . 'class="locselectplace form-control select2 fullwidth select2-alph-sort" id="locselectplace"');	
 
 		$result = cot_rc('input_location' , array(
 			'country' => $country_selectbox,
 			'region' => $region_selectbox,
-			'city' => $city_selectbox
+			'city' => $city_selectbox,
+			'place' => $place_selectbox
 		));
 
 		return $result;
@@ -411,8 +457,10 @@ function cot_import_location($source = 'P')
 	$result['country'] = cot_import('country',$source, 'ALP', 3);
 	$result['region'] = cot_import('region', $source, 'INT');
 	$result['city'] = cot_import('city', $source, 'INT');
+	$result['place'] = cot_import('place', $source, 'INT');
 	$result['region'] = ($result['country'] == '0') ? 0 : $result['region'];
 	$result['city'] = ($result['region'] == '0') ? 0 : $result['city'];
+	$result['place'] = ($result['city'] == '0') ? 0 : $result['place'];
 
 	return $result;
 }

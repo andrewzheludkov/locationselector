@@ -27,7 +27,7 @@ if (!$cot_countries)
 }
 
 require_once cot_incfile('forms');
-if (!in_array($n, array('city', 'region', 'show')))
+if (!in_array($n, array('place', 'city', 'region', 'show')))
 {
 	$n = 'country';
 }

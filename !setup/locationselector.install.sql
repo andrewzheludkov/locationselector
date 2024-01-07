@@ -17,6 +17,17 @@ CREATE TABLE IF NOT EXISTS `cot_ls_cities` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
+CREATE TABLE IF NOT EXISTS `cot_ls_places` (
+  `place_id` int(11) unsigned NOT NULL auto_increment,
+  `place_country` varchar(3) collate utf8_unicode_ci NOT NULL,
+  `place_region` int(11) unsigned NOT NULL default '0',
+  `place_city` int(11) unsigned NOT NULL default '0',
+  `place_name` varchar(255) collate utf8_unicode_ci default NULL,
+  PRIMARY KEY  (`place_id`),
+  KEY `place_city` (`place_city`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
 INSERT INTO `cot_ls_cities` (`city_id`, `city_country`, `city_region`, `city_name`) VALUES
 (4400,	'ru',	4312,	'Москва'),
 (4313,	'ru',	4312,	'Абрамцево'),

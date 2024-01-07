@@ -18,7 +18,7 @@ defined('COT_CODE') or die('Wrong URL.');
 
 // ==============================================
 $t->assign(array(
-	"SEARCH_LOCATION" => cot_select_location($location['country'], $location['region'], $location['city']),
+	"SEARCH_LOCATION" => cot_select_location($location['country'], $location['region'], $location['city'], $location['place']),
 	"SEARCH_LOCATION_MID" => cot_select_location_mid($location['country'], $location['region']),
 	"SEARCH_LOCATION_SHORT" => cot_select_location_short($location['country']),
 

@@ -96,6 +96,7 @@ $(document).on("change", "#locselectregion", function(){
             var opts = '';
             $.each(data.cities, function(index, value) {
                 opts = opts + '<option value="'+index+'">'+value+'</option>';
+                //alert(value);
             });
             $('#'+city_id).html(opts);
             if (data.disabled == 0){
@@ -122,13 +123,11 @@ $(document).on("change", "#locselectcity", function(){
 		}
     var id = $(this).attr('id');
     var city = $(this).val();
-    
     var place_id = 'locselectplace';
-
     var Parent = $('#'+place_id).parent();
 
     var placeOptionFirst = $('#'+place_id).find('option:first').text();
-    $('#'+city_id).html('<option value="0">' + placeOptionFirst + '</option>');
+    $('#'+place_id).html('<option value="0">' + placeOptionFirst + '</option>');
 
     $('#'+ id +'_name').val($('#'+ id + ' option:selected').text());
     $('#'+place_id+'_name').val('');
@@ -141,14 +140,21 @@ $(document).on("change", "#locselectcity", function(){
     if (city != '0'){
 	    $('#locselectplace').val($('#locselectplace').find('option').first().val());
 	    $('#locselectplace').select2();
-        //var loader_bg = $('<span>', {
-        //    id: "loading",
-        //    class: "loading"
-        //}).css('position', 'absolute').css('opacity', 0);
-        //loader_bg.html('<img src="./images/spinner.gif" alt="loading" alt="Loading...">');
-        //Parent.append(loader_bg).css('opacity', 0.5);
         $('#'+place_id).html('<option> --- </option>');
-
+										$.notify("city "+city,{
+										  clickToHide: true,
+										  autoHideDelay: 25000,
+										  arrowShow: true,
+										  arrowSize: 5,
+										  breakNewLines: true,
+										  globalPosition: "top left",
+										  style: "bootstrap", // or metro
+										  className: "error",
+										  showDuration: 400,
+										  hideAnimation: "slideUp",
+										  hideDuration: 200,
+										  gap: 5
+										});
         $.get('index.php?r=locationselector', { city: city }, function(data) {
             var opts = '';
             $.each(data.places, function(index, value) {
@@ -158,13 +164,10 @@ $(document).on("change", "#locselectcity", function(){
             if (data.disabled == 0){
                 $('#'+place_id).attr('disabled', null);
             }
-            //loader_bg.remove();
-            //Parent.css('opacity', 1);
         }, "json").done(function (h) {
 	        $('.processing').css('display', 'none');
 	        $('.processing').css('visibility', 'hidden');
 	   });
-	   //$('select#locselectregion').find('option').get(0).remove();
     }else{
 	        $('.processing').css('display', 'none');
 	        $('.processing').css('visibility', 'hidden');
@@ -177,5 +180,3 @@ $(document).on("change", "#locselectplace", function(){
     $('#'+ id +'_name').val($('#'+ id + ' option:selected').text());
     //$('select#locselectcity').find('option').get(0).remove();
 });
-
-

@@ -35,5 +35,6 @@ $L['ls_newcity_newstr'] = 'each place on a separate line';
 $L['ls_newcity_list'] = 'Specify a list of places';
 
 $L['select_country'] = ' Select a country';
-$L['select_region'] = ' Select a region';
-$L['select_city'] = ' Select a place';
+$L['select_region'] = ' Select region';
+$L['select_city'] = ' Select city';
+$L['select_place'] = ' Select a place';
