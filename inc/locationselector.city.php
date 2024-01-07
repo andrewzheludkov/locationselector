@@ -100,7 +100,7 @@ if ($a == 'add')
 							    "regioncode" => $rinput['city_region'],
 							    "regionname" => $region['region_name'],
 							    "countrycode" => $region['region_country'],
-							    "countryname" => $country_name,
+							    "countryname" => cot_getcountry_en($region['region_country']),
 							    "center_lat" => (string)$geoloc['results'][0]['geometry']['location']['lat'],
 							    "center_lng" => (string)$geoloc['results'][0]['geometry']['location']['lng'],
 							    "sw_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lat'],
@@ -153,6 +153,7 @@ if ($a == 'edit') {
 			$db->update($db_ls_cities, $rinput, "city_id=".(int)$rid);
             $region = $db->query("SELECT * FROM $db_ls_regions WHERE region_id=" . $id)->fetch();
             $country_name = cot_getcountry_en($region['region_country']);
+            $country_name = str_replace(" ", "+", $country_name);
             $city_name = str_replace(" ", "+", $rinput['city_name']);
             $region_name = str_replace(" ", "+", $region['region_name']);
             $place_name = $country_name . "+" . $region_name . "+" . $city_name;
@@ -181,7 +182,7 @@ if ($a == 'edit') {
                     "regioncode" => $region['region_id'],
                     "regionname" => $region['region_name'],
                     "countrycode" => $region['region_country'],
-                    "countryname" => $country_name,
+                    "countryname" => cot_getcountry_en($region['region_country']),
                     "center_lat" => (string)$geoloc['results'][0]['geometry']['location']['lat'],
                     "center_lng" => (string)$geoloc['results'][0]['geometry']['location']['lng'],
                     "sw_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lat'],

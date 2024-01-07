@@ -106,7 +106,7 @@ if ($a == 'add')
 							    "regioncode" => $region['region_id'],
 							    "regionname" => $region['region_name'],
 							    "countrycode" => $region['region_country'],
-							    "countryname" => $country_name,
+							    "countryname" => cot_getcountry_en($region['region_country']),
 							    "center_lat" => (string)$geoloc['results'][0]['geometry']['location']['lat'],
 							    "center_lng" => (string)$geoloc['results'][0]['geometry']['location']['lng'],
 							    "sw_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lat'],
@@ -151,15 +151,18 @@ if ($a == 'add')
 if ($a == 'edit') {
     $rnames = cot_import('rname', 'P', 'ARR');
 
-    foreach ($rnames as $rid => $rname) {
+    foreach ($rnames as $pid => $rname) {
         $rinput = array();
-        $rinput['city_name'] = cot_import($rname, 'D', 'TXT');
-        if (!empty($rinput['city_name'])) {
+        $rinput['place_name'] = cot_import($rname, 'D', 'TXT');
+        if (!empty($rinput['place_name'])) {
 	        //$id is region, $rid is place
-			$db->update($db_ls_cities, $rinput, "city_id=".(int)$rid);
-            $region = $db->query("SELECT * FROM $db_ls_regions WHERE region_id=" . $id)->fetch();
-            $country_name = cot_getcountry_en($region['region_country']);
-            $city_name = str_replace(" ", "+", $rinput['city_name']);
+			$db->update($db_ls_places, $rinput, "place_id=".(int)$pid);
+			$city = $db->query("SELECT * FROM $db_ls_cities WHERE city_id=" . $id . "")->fetch();
+			$region = $db->query("SELECT * FROM $db_ls_regions WHERE region_id=" . $city['city_region'] . "")->fetch();
+            $country_name = cot_getcountry_en($region['region_country']);   
+            $country_name = str_replace(" ", "+", $country_name);         
+            $place_name = str_replace (" ", "+", $rinput['place_name']);
+            $city_name = str_replace(" ", "+", $city['city_name']);
             $region_name = str_replace(" ", "+", $region['region_name']);
             $place_name = $country_name . "+" . $region_name . "+" . $city_name;
             $geocode = "https://maps.googleapis.com/maps/api/geocode/json?address=" . $place_name . "&sensor=false&key=AIzaSyBwWsIxN1TSOr00pImUMIrbmwC0yOV2Pok&language=en";
@@ -182,24 +185,26 @@ if ($a == 'edit') {
                 is_numeric($geoloc['results'][0]['geometry']['viewport']['northeast']['lat']) &&
                 is_numeric($geoloc['results'][0]['geometry']['viewport']['northeast']['lng'])) {
                 $newData = array(
-                    "name" => (string)$rid, 
-                    "city" => $rinput['city_name'],
-                    "regioncode" => $region['region_id'],
-                    "regionname" => $region['region_name'],
-                    "countrycode" => $region['region_country'],
-                    "countryname" => $country_name,
-                    "center_lat" => (string)$geoloc['results'][0]['geometry']['location']['lat'],
-                    "center_lng" => (string)$geoloc['results'][0]['geometry']['location']['lng'],
-                    "sw_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lat'],
-                    "sw_lng" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lng'],
-                    "ne_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['northeast']['lat'],
-                    "ne_lng" => (string)$geoloc['results'][0]['geometry']['viewport']['northeast']['lng']
+                    "name" => (string)$pid, 
+                    "place" => $rinput['place_name'],
+                    "citycode" => $city['city_region'], 
+                    "city_name" => $city['city_name'],
+				    "regioncode" => $region['region_id'],
+				    "regionname" => $region['region_name'],
+				    "countrycode" => $region['region_country'],
+				    "countryname" => cot_getcountry_en($region['region_country']),
+				    "center_lat" => (string)$geoloc['results'][0]['geometry']['location']['lat'],
+				    "center_lng" => (string)$geoloc['results'][0]['geometry']['location']['lng'],
+				    "sw_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lat'],
+				    "sw_lng" => (string)$geoloc['results'][0]['geometry']['viewport']['southwest']['lng'],
+				    "ne_lat" => (string)$geoloc['results'][0]['geometry']['viewport']['northeast']['lat'],
+				    "ne_lng" => (string)$geoloc['results'][0]['geometry']['viewport']['northeast']['lng']
                 );
-                $jsonFile = 'cities.json';
+                $jsonFile = 'places.json';
                 $currentData = file_get_contents($jsonFile);
                 $currentDataArray = json_decode($currentData, true);
                 foreach ($currentDataArray as $key => $value) {
-                    if ($value['name'] == $rid) {
+                    if ($value['name'] == $pid) {
                         unset($currentDataArray[$key]);
                         break;
                     }
@@ -220,9 +225,9 @@ if ($a == 'edit') {
         }
 		else
 		{
-			$db->delete($db_ls_cities, "city_id=".(int)$rid);
-			$deleteData = (int)$rid;
-		    $jsonFile = 'cities.json';
+			$db->delete($db_ls_places, "place_id=".(int)$pid);
+			$deleteData = (int)$pid;
+		    $jsonFile = 'places.json';
 		    $currentData = file_get_contents($jsonFile);	
 		    $currentDataArray = json_decode($currentData, true);	
 		    foreach ($currentDataArray as $key => $data) {
@@ -235,12 +240,12 @@ if ($a == 'edit') {
 		    cot_message('Data deleted', 'infomessage');
 		}
     }
-	cot_log("Edit city #".$rinput['city_name']." in country ".$rinput['city_country'], 'plg');
+	cot_log("Edit city #".$rinput['place_name'], 'plg');
 	$cache && $cache->clear();
     cot_redirect(cot_url('admin', 'm=other&p=locationselector&n=city&id=' . $id, '', true));
     exit;
 }
-
+//$cfg['maxrowsperpage'] = 1;
 $t = new XTemplate(cot_tplfile('locationselector.place', 'plug', true));
 
 $totalitems = $db->query("SELECT COUNT(*) FROM $db_ls_places WHERE place_city=" . $id)->fetchColumn();

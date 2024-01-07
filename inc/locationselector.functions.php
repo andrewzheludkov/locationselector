@@ -23,7 +23,7 @@ global $db_ls_regions, $db_ls_cities, $db_ls_places, $db_x;
 $db_ls_regions = (isset($db_ls_regions)) ? $db_ls_regions : $db_x . 'ls_regions';
 $db_ls_cities = (isset($db_ls_cities)) ? $db_ls_cities : $db_x . 'ls_cities';
 $db_ls_places = (isset($db_ls_places)) ? $db_ls_places : $db_x . 'ls_places';
-$R['input_location'] = (empty($R['input_location'])) ? '<span class="locselect"><span>{$country}</span> <span>{$region}</span> <span>{$city}</span> <span>{$place}</span></span>' : $R['input_location'];
+$R['input_location'] = '<span class="locselect"><span>{$country}</span> <span>{$region}</span> <span>{$city}</span> <span>{$place}</span></span>';
 
 if (!$cot_countries)
 {
@@ -131,8 +131,8 @@ function cot_getregions($country)
 	asort($regions);
 	return $regions;
 }
-//паше - тут тоже яебу что пишу эта функция и ниже
-function cot_getcities($region)
+
+function cot_getcities_alt($region)
 {
 	global $cot_lf_regions, $cot_lf_cities, $cot_lf_locations;
 	$cities = array();
@@ -145,7 +145,30 @@ function cot_getcities($region)
 	return $cities;
 }
 
+function cot_getcities($region)
+{
+	global $cot_lf_locations;
 
+	$cities = array();
+	foreach ($cot_lf_locations as $lcountry => $regs)
+	{
+		if (array_key_exists($region, $regs))
+		{
+			$country = $lcountry;
+			break;
+		}
+	}
+	
+	foreach ($cot_lf_locations[$country][$region] as $id => $name)
+	{
+		$cities[$id] = $name;
+	}
+	asort($cities);
+	return $cities;
+}
+
+
+//паше - тут тоже яебу что пишу
 function cot_getplaces($city)
 {
 	global $cot_lf_locations;
@@ -153,14 +176,14 @@ function cot_getplaces($city)
 	$places = array();
 	foreach ($cot_lf_locations as $lcountry => $cits)
 	{
-		if (array_key_exists($region, $cits))
+		if (array_key_exists($city, $cits))
 		{
 			$country = $lcountry;
 			break;
 		}
 	}
 	
-	foreach ($cot_lf_locations[$country][$place] as $id => $name)
+	foreach ($cot_lf_locations[$country][$city] as $id => $name)
 	{
 		$places[$id] = $name;
 	}

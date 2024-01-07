@@ -128,7 +128,7 @@ $(document).on("change", "#locselectcity", function(){
     var Parent = $('#'+place_id).parent();
 
     var placeOptionFirst = $('#'+place_id).find('option:first').text();
-    $('#'+city_id).html('<option value="0">' + placeOptionFirst + '</option>');
+    $('#'+place_id).html('<option value="0">' + placeOptionFirst + '</option>');
 
     $('#'+ id +'_name').val($('#'+ id + ' option:selected').text());
     $('#'+place_id+'_name').val('');
